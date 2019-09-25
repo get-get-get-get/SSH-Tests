@@ -135,7 +135,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "-u",
         "--user",
-        default=True,
+        default="root",
         help="Username for authentication")
     pw_group = parser.add_mutually_exclusive_group()
     pw_group.add_argument(
