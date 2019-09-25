@@ -36,7 +36,7 @@ def main():
         exit()
     
     # Authentication
-    user = args.password
+    user = args.user
 
     if args.password:
         password = args.password
