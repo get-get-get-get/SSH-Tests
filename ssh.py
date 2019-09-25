@@ -5,7 +5,7 @@ import paramiko
 
 
 
-def connect(host, port, user, password=None, keyfile=None):
+def connect_client(host, port, user, password=None, keyfile=None):
 
     print("Initializing client...")
     ssh_client = paramiko.SSHClient()
@@ -45,7 +45,7 @@ def main():
     else:
         password = getpass.getpass
 
-    client = connect(args.host, args.port, args.user, password=password)
+    client = connect_client(args.host, args.port, args.user, password=password)
 
     # End client connection
     client.close()
