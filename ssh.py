@@ -20,7 +20,6 @@ def connect(host, port, user, password=None, keyfile=None):
         password=password
     )
     
-
     return ssh_client
 
 
@@ -55,7 +54,6 @@ def main():
 
 if __name__ == '__main__':
 
-
     # Add arguments
     parser = argparse.ArgumentParser()
 
@@ -87,8 +85,6 @@ if __name__ == '__main__':
         "--passfile",
         help="Path to file holding password"
     )
-
-    # Parse arguments
-    args, other_args = parser.parse_known_args()
+    args = parser.parse_args()
 
     main()
