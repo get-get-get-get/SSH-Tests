@@ -2,9 +2,23 @@
 import argparse
 import getpass
 import paramiko
+import select
+import socket
+import sys
+from paramiko.py3compat import u
+
+# windows does not have termios...
+try:
+    import termios
+    import tty
+
+    has_termios = True
+except ImportError:
+    has_termios = False
 
 
 
+# Authenticate and connect to SSH server
 def connect_client(host, port, user, password=None, keyfile=None):
 
     print("Initializing client...")
@@ -23,6 +37,48 @@ def connect_client(host, port, user, password=None, keyfile=None):
     return ssh_client
 
 
+# trying to copy https://github.com/paramiko/paramiko/blob/master/demos/interactive.py
+def interactive_shell(chan):
+    if has_termios:
+        posix_shell(chan)
+    else:
+        windows_shell(chan)
+
+
+def posix_shell(chan):
+
+    oldtty = termios.tcgetattr(sys.stdin)
+    try:
+        tty.setraw(sys.stdin.fileno())
+        tty.setcbreak(sys.stdin.fileno())
+        chan.settimeout(0.0)
+
+        while True:
+            r, w, e = select.select([chan, sys.stdin], [], [])
+            if chan in r:
+                try:
+                    x = u(chan.recv(1024))
+                    if len(x) == 0:
+                        sys.stdout.write("\r\r*** EOF\r\n")
+                        break
+                    sys.stdout.write(x)
+                    sys.stdout.flush()
+                except socket.timeout:
+                    pass
+            
+            if sys.stdin in r:
+                x = sys.stdin.read(1)
+                if len(x) == 0:
+                    break
+                chan.send(x)
+            
+    finally:
+        termios.tcsetattr(sys.stdin, termios.TCCSADRAIN, oldtty)
+
+
+def windows_shell(han):
+    pass
+
 def read_passfile(file):
     with open(file, "r") as f:
         passw = f.read().strip()
@@ -35,7 +91,7 @@ def main():
         print("Haven't implemented identity files yes lmao")
         exit()
     
-    # Authentication
+    # Set Authentication
     user = args.password
 
     if args.password:
@@ -45,7 +101,12 @@ def main():
     else:
         password = getpass.getpass
 
+    # Connect
     client = connect_client(args.host, args.port, args.user, password=password)
+
+    # Create shell 
+    interactive_shell(client.invoke_shell)
+
 
     # End client connection
     client.close()
