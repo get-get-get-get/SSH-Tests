@@ -33,7 +33,7 @@ def connect_client(host, port, user, password=None, keyfile=None):
         username=user,
         password=password
     )
-    
+
     return ssh_client
 
 
@@ -65,13 +65,13 @@ def posix_shell(chan):
                     sys.stdout.flush()
                 except socket.timeout:
                     pass
-            
+
             if sys.stdin in r:
                 x = sys.stdin.read(1)
                 if len(x) == 0:
                     break
                 chan.send(x)
-            
+
     finally:
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, oldtty)
 
@@ -90,9 +90,9 @@ def main():
     if args.identity_file:
         print("Haven't implemented identity files yes lmao")
         exit()
-    
+
     # Set Authentication
-    user = args.password
+    user = args.user
 
     if args.password:
         password = args.password
@@ -104,7 +104,7 @@ def main():
     # Connect
     client = connect_client(args.host, args.port, args.user, password=password)
 
-    # Create shell 
+    # Create shell
     interactive_shell(client.invoke_shell)
 
 
