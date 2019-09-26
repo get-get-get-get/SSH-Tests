@@ -38,6 +38,7 @@ def connect_client(host, port, user, password=None, keyfile=None):
 
 
 # trying to copy https://github.com/paramiko/paramiko/blob/master/demos/interactive.py
+# Launch interactive SSH session. Considers OS capabilities
 def interactive_shell(chan):
     if has_termios:
         posix_shell(chan)
@@ -45,6 +46,7 @@ def interactive_shell(chan):
         windows_shell(chan)
 
 
+# Launch interactive SSH session on Unix client
 def posix_shell(chan):
 
     oldtty = termios.tcgetattr(sys.stdin)
@@ -76,7 +78,7 @@ def posix_shell(chan):
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, oldtty)
 
 
-def windows_shell(han):
+def windows_shell(chan):
     pass
 
 def read_passfile(file):
