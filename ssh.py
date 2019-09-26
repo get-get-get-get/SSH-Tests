@@ -51,7 +51,7 @@ def posix_shell(chan):
     try:
         tty.setraw(sys.stdin.fileno())
         tty.setcbreak(sys.stdin.fileno())
-        #chan.settimeout(0.0)
+        chan.settimeout(0.0)
 
         while True:
             r, w, e = select.select([chan, sys.stdin], [], [])
@@ -105,7 +105,7 @@ def main():
     client = connect_client(args.host, args.port, args.user, password=password)
 
     # Create shell
-    interactive_shell(client.invoke_shell)
+    interactive_shell(client.invoke_shell())
 
 
     # End client connection
