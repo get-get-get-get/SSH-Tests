@@ -37,7 +37,7 @@ def connect_client(host, port, user, password=None, keyfile=None):
     return ssh_client
 
 
-# trying to copy https://github.com/paramiko/paramiko/blob/master/demos/interactive.py
+# https://github.com/paramiko/paramiko/blob/master/demos/interactive.py
 # Launch interactive SSH session. Considers OS capabilities
 def interactive_shell(chan):
     if has_termios:
@@ -92,13 +92,8 @@ def main():
     if args.identity_file:
         print("Haven't implemented identity files yes lmao")
         exit()
-<<<<<<< HEAD
 
     # Set Authentication
-=======
-    
-    # Authentication
->>>>>>> ce22b48d92e39f0039450f7b487bd5a9232de7c2
     user = args.user
 
     if args.password:
@@ -142,11 +137,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "-u",
         "--user",
-<<<<<<< HEAD
         default="root",
-=======
-        Required=True,
->>>>>>> ce22b48d92e39f0039450f7b487bd5a9232de7c2
         help="Username for authentication")
     pw_group = parser.add_mutually_exclusive_group()
     pw_group.add_argument(
