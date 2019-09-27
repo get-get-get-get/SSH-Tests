@@ -31,7 +31,8 @@ def connect_client(host, port, user, password=None, keyfile=None):
         host,
         port=port,
         username=user,
-        password=password
+        password=password,
+        key_filename=keyfile
     )
 
     return ssh_client
@@ -89,26 +90,26 @@ def read_passfile(file):
 
 def main():
 
-    if args.identity_file:
-        print("Haven't implemented identity files yes lmao")
-        exit()
 
     # Set Authentication
     user = args.user
+    host = args.host
+    port = args.port
 
     if args.password:
         password = args.password
     elif args.passfile:
         password = read_passfile(args.passfile)
+    elif args.identity_file:
+        password = None
     else:
         password = getpass.getpass
 
     # Connect
-    client = connect_client(args.host, args.port, args.user, password=password)
+    client = connect_client(host, port, user, password=password, keyfile=args.identity_file)
 
     # Create shell
     interactive_shell(client.invoke_shell())
-
 
     # End client connection
     client.close()
@@ -132,6 +133,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "-i",
         "--identity-file",
+        default=None,
         help="Path to key file"
     )
     parser.add_argument(
