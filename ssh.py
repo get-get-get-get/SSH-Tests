@@ -115,6 +115,9 @@ def main():
         interactive_shell(client.invoke_shell())
     except KeyboardInterrupt:
         print(f"Ending interactive session with {host}")
+    
+    if args.local_forward:
+        pass
 
     # End client connection
     client.close()
@@ -155,6 +158,14 @@ if __name__ == '__main__':
         "--passfile",
         help="Path to file holding password"
     )
+
+    # Forwarding options
+    parser.add_argument(
+        "-L",
+        "--local-forward",
+        help="Port forward from local port. Specify local port to listen"
+    )
+
     args = parser.parse_args()
 
     main()
