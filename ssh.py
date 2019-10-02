@@ -11,8 +11,8 @@ from paramiko.py3compat import u
 try:
     import termios
     import tty
-
     has_termios = True
+
 except ImportError:
     has_termios = False
 
@@ -133,9 +133,9 @@ def main():
                 exit()
             
             # Important variables
-            lport = fwd[0]
+            lport = int(fwd[0])
             rhost = fwd[1]
-            rport = fwd[2]
+            rport = int(fwd[2])
 
             forward.forward_tunnel(lport, rhost, rport, client)
 
