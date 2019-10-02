@@ -58,8 +58,13 @@ class SubHandler(Handler):
 
 
 # Do a local port forward
-def forward_tunnel(lport, rhost, rport, transport, chan):
+def forward_tunnel(lport, rhost, rport, client=None, transport=None, chan=None):
 
+    if client and not chan: 
+        chan = client.invoke_shell()
+    if client and not transport:
+        transport = client.get_transport()      
+    
     handler = Handler(chan)
     sub_handler = SubHandler(rhost, rport, transport)
 

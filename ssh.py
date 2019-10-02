@@ -52,6 +52,7 @@ def interactive_shell(chan):
 # Launch interactive SSH session on Unix client
 def posix_shell(chan):
 
+
     oldtty = termios.tcgetattr(sys.stdin)
     try:
         tty.setraw(sys.stdin.fileno())
