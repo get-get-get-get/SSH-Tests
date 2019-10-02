@@ -68,5 +68,8 @@ def forward_tunnel(lport, rhost, rport, client=None, transport=None, chan=None):
     handler = Handler(chan)
     sub_handler = SubHandler(rhost, rport, transport)
 
+    print(f"listening on {lport}, forwarding to {rhost}:{rport}")
+    print(f":{lport} -> {rhost}:{rport}")
+    
     # Run server
     ForwardServer(("", lport), sub_handler).serve_forever()

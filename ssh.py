@@ -16,8 +16,8 @@ try:
 except ImportError:
     has_termios = False
 
-
 import forward
+
 
 
 # Authenticate and connect to SSH server
@@ -52,7 +52,6 @@ def interactive_shell(chan):
 # Launch interactive SSH session on Unix client
 def posix_shell(chan):
 
-
     oldtty = termios.tcgetattr(sys.stdin)
     try:
         tty.setraw(sys.stdin.fileno())
@@ -85,6 +84,8 @@ def posix_shell(chan):
 def windows_shell(chan):
     pass
 
+
+# Read password from file
 def read_passfile(file):
     with open(file, "r") as f:
         passw = f.read().strip()
@@ -92,7 +93,6 @@ def read_passfile(file):
 
 
 def main():
-
 
     # Set Authentication
     user = args.user
@@ -108,20 +108,42 @@ def main():
     else:
         password = getpass.getpass
 
-    # Connect
-    client = connect_client(host, port, user, password=password, keyfile=args.identity_file)
-
-    # Create shell
     try:
-        interactive_shell(client.invoke_shell())
-    except KeyboardInterrupt:
-        print(f"Ending interactive session with {host}")
+        # Connect
+        client = connect_client(host, port, user, password=password, keyfile=args.identity_file)
+    except Exception as e:
+        print(f"Connection Error: {e}")
+        exit()
     
-    if args.local_forward:
-        pass
+    try: 
+        
+        if not args.non_interactive:
+            # Create shell
+            try:
+                interactive_shell(client.invoke_shell())
+            except KeyboardInterrupt:
+                print(f"Ending interactive session with {host}")
 
-    # End client connection
-    client.close()
+        # Local port forwarding
+        if args.local_forward:
+            fwd = args.local_forward.split(":")
+            if len(fwd) != 3:
+                print(f"Local Forward Error: invalid args -- {args.local_forward}")
+                client.close()
+                exit()
+            
+            # Important variables
+            lport = fwd[0]
+            rhost = fwd[1]
+            rport = fwd[2]
+
+            forward.forward_tunnel(lport, rhost, rport, client)
+
+    # Catch uncaught exceptions and guarantee connection closes
+    finally:
+        # End client connection
+        print(f"Closed connection to {host}")
+        client.close()
 
 
 
@@ -160,11 +182,18 @@ if __name__ == '__main__':
         help="Path to file holding password"
     )
 
+    # Shell options
+    parser.add_argument(
+        "--non-interactive",
+        action="store_true",
+        help="Skip interactive shell"
+    )
+
     # Forwarding options
     parser.add_argument(
         "-L",
         "--local-forward",
-        help="Port forward from local port. Specify local port to listen"
+        help="Port forward from local port. Formate {lport}:{rhost}:{rport}"
     )
 
     args = parser.parse_args()
