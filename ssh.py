@@ -103,7 +103,7 @@ def main():
     elif args.identity_file:
         password = None
     else:
-        password = getpass.getpass
+        password = getpass.getpass()
 
     # Connect
     client = connect_client(host, port, user, password=password, keyfile=args.identity_file)
