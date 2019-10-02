@@ -106,7 +106,7 @@ def main():
     elif args.identity_file:
         password = None
     else:
-        password = getpass.getpass
+        password = getpass.getpass()
 
     try:
         # Connect
