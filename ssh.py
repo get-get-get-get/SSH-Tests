@@ -17,6 +17,8 @@ except ImportError:
     has_termios = False
 
 
+import forward
+
 
 # Authenticate and connect to SSH server
 def connect_client(host, port, user, password=None, keyfile=None):
@@ -109,7 +111,10 @@ def main():
     client = connect_client(host, port, user, password=password, keyfile=args.identity_file)
 
     # Create shell
-    interactive_shell(client.invoke_shell())
+    try:
+        interactive_shell(client.invoke_shell())
+    except KeyboardInterrupt:
+        print(f"Ending interactive session with {host}")
 
     # End client connection
     client.close()
