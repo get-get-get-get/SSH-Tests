@@ -106,7 +106,7 @@ def main():
         password = getpass.getpass()
 
     # Connect
-    print("Connecting to {host}:{port} as {user}...")
+    print(f"Connecting to {host}:{port} as {user}...")
     client = connect_client(host, port, user, password=password, keyfile=args.identity_file)
 
     # Create shell
