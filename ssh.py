@@ -40,13 +40,8 @@ def connect_client(host, port, user, password=None, keyfile=None):
         password=password,
         key_filename=keyfile
     )
-
+    
     return ssh_client
-
-
-# Creates SFTP client from SSH client
-def sftp_from_client(client):
-    sftp_client = paramiko.SFTPClient.from_transport(client.get_transport())
 
 
 # https://github.com/paramiko/paramiko/blob/master/demos/interactive.py
@@ -126,7 +121,7 @@ def main():
     client.close()
 
 
-# Parse command line arguments
+# Parse command line arguments, return argparse namespace
 def parse_options():
 
     # Add arguments
@@ -150,7 +145,7 @@ def parse_options():
     parser.add_argument(
         "-u",
         "--user",
-        default="root",
+        default=None,
         help="Username for authentication")
     pw_group = parser.add_mutually_exclusive_group()
     pw_group.add_argument(
