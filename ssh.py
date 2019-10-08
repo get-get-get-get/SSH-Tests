@@ -134,6 +134,12 @@ def parse_options():
         default=22,
         type=int,
         help="Port to connect to")
+    parser.add_argument(
+        "-6",
+        "--IPv6",
+        action="store_true",
+        help="Use IPv6"
+    )
 
     # Auth options
     parser.add_argument(
@@ -157,6 +163,23 @@ def parse_options():
         help="Path to file holding password"
     )
     return parser.parse_args()
+
+
+# Parse user@host[:port] style string, returning (user, host, port)
+def parse_host_string(args):
+
+    host = args.host
+    user = args.user
+    port = args.port
+
+    if "@" in host:
+        user, host = host.split("@")
+    if host.contains(":") and not args.IPv6:
+        port = host.split(":")[-1]
+    if user is None:
+        user = "root"
+    
+    return (user, host, port)
 
 
 if __name__ == '__main__':
