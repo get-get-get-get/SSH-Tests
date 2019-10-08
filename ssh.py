@@ -24,6 +24,12 @@ def connect_client(host, port, user, password=None, keyfile=None):
     print("Initializing client...")
     ssh_client = paramiko.SSHClient()
 
+    # Load host keys
+    try:
+        ssh_client.load_system_host_keys()
+    except Exception as e:
+        print("Error: failed to load host keys! %s" % e)
+
     # Auto-add server to trusted policy
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
