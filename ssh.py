@@ -126,7 +126,8 @@ def main():
     client.close()
 
 
-if __name__ == '__main__':
+# Parse command line arguments
+def parse_options():
 
     # Add arguments
     parser = argparse.ArgumentParser()
@@ -160,6 +161,10 @@ if __name__ == '__main__':
         "--passfile",
         help="Path to file holding password"
     )
-    args = parser.parse_args()
+    return parser.parse_args()
 
+
+if __name__ == '__main__':
+
+    args = parse_options()
     main()
