@@ -44,6 +44,11 @@ def connect_client(host, port, user, password=None, keyfile=None):
     return ssh_client
 
 
+# Creates SFTP client from SSH client
+def sftp_from_client(client):
+    sftp_client = paramiko.SFTPClient.from_transport(client.get_transport())
+
+
 # https://github.com/paramiko/paramiko/blob/master/demos/interactive.py
 # Launch interactive SSH session. Considers OS capabilities
 def interactive_shell(chan):
@@ -96,7 +101,6 @@ def read_passfile(file):
 
 def main():
 
-
     # Set Authentication
     user = args.user
     host = args.host
@@ -120,7 +124,6 @@ def main():
 
     # End client connection
     client.close()
-
 
 
 if __name__ == '__main__':
