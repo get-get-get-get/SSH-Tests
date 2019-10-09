@@ -2,6 +2,7 @@
 import getpass
 import os
 import paramiko
+import pathlib
 import ssh
 
 
@@ -80,6 +81,9 @@ def main():
         do_get = False
     
     if do_get:
+        if os.path.isdir(local):
+            name = pathlib.PurePath(resource).name
+            local = os.path.join(local, name)
         print(f"Copying {resource} to {local}")
         sftp_client.get(resource, local)
     else:
