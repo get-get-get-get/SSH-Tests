@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import getpass
 import os
 import paramiko
@@ -37,7 +38,7 @@ def parse_scp_host(args):
 
     if "@" in host:
         user, host = host.split("@")
-    if host.contains(":") and not args.IPv6:
+    if (":" in host) and not args.IPv6:
         host, port = host.split(":")
         port = int(port)
 
@@ -82,7 +83,13 @@ def main():
     else:
         print(f"Copying {local} to {resource}")
         sftp_client.put(local, resource)
-
+    
+    # TODO: put in better location or something
+    try:
+        sftp_client.close()
+        ssh_client.close()
+    except:
+        pass
 
 
 if __name__ == '__main__':
