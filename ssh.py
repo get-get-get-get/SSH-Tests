@@ -97,11 +97,9 @@ def read_passfile(file):
 def main():
 
     args = parse_options()
-    
+
     # Set Authentication
-    user = args.user
-    host = args.host
-    port = args.port
+    user , host, port = parse_host_string(args)
 
     if args.password:
         password = args.password

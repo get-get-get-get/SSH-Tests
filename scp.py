@@ -25,10 +25,13 @@ def find_remote(x, y):
 
 
 
-
 def main():
 
     args = ssh.parse_options(scp=True)
+    # This doesn't really work because args.destination might actually have hoststring
+    user, host, port = ssh.parse_host_string(args)
+
+
 
 
 
