@@ -96,6 +96,8 @@ def read_passfile(file):
 
 def main():
 
+    args = parse_options()
+    
     # Set Authentication
     user = args.user
     host = args.host
@@ -122,14 +124,20 @@ def main():
 
 
 # Parse command line arguments, return argparse namespace
-def parse_options():
+def parse_options(*, scp=False):
 
     # Add arguments
     parser = argparse.ArgumentParser()
 
-    # Host
-    parser.add_argument("host",
+    # Host.
+    parser.add_argument(
+        "host",
         help="Remote machine, formatted user@domain")
+    if scp:
+        parser.add_argument(
+            "destination",
+            help="File destination; either remote host or local file"
+        )
     parser.add_argument("-p", "--port",
         default=22,
         type=int,
@@ -183,6 +191,4 @@ def parse_host_string(args):
 
 
 if __name__ == '__main__':
-
-    args = parse_options()
     main()
