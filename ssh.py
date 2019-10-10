@@ -33,6 +33,9 @@ def connect_client(host, port, user, password=None, keyfile=None):
     # Auto-add server to trusted policy
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
+    if password is None and keyfile is None:
+        password = getpass.getpass()
+
     ssh_client.connect(
         host,
         port=port,
@@ -105,10 +108,8 @@ def main():
         password = args.password
     elif args.passfile:
         password = read_passfile(args.passfile)
-    elif args.identity_file:
-        password = None
     else:
-        password = getpass.getpass()
+        password = None
 
     # Connect
     print(f"Connecting to {host}:{port} as {user}...")

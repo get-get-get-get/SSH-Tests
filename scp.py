@@ -63,10 +63,8 @@ def main():
         password = args.password
     elif args.passfile:
         password = ssh.read_passfile(args.passfile)
-    elif args.identity_file:
-        password = None
     else:
-        password = getpass.getpass()
+        password = None
 
     # Connect
     print(f"Authenticating to {host}:{port} as {user}...")
