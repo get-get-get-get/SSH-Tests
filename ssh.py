@@ -181,7 +181,7 @@ def parse_host_string(args):
 
     if "@" in host:
         user, host = host.split("@")
-    if host.contains(":") and not args.IPv6:
+    if (":" in host) and not args.IPv6:
         port = host.split(":")
     if user is None:
         user = "root"
