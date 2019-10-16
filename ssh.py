@@ -17,7 +17,7 @@ try:
 except ImportError:
     has_termios = False
 
-
+import scp
 
 
 class Client(paramiko.SSHClient):
@@ -57,6 +57,37 @@ class Client(paramiko.SSHClient):
                 self.password = getpass.getpass()
         
         print("Connected!")
+        
+
+    # Create Clients from command line arguments
+    @classmethod
+    def from_options(cls, scp=False):
+
+        args = parse_options(scp=scp)
+
+        if scp:
+            user, host, port, resource = scp.parse_scp_host(args)
+        else:
+            user, host, port = parse_host_string(args)
+
+        # Instantiate Client
+        client = cls(host)
+
+        # Read configs to set default
+        client.parse_config()
+
+        # Override config with any command-line options
+        self.user = user
+        self.port = port
+        
+        if args.password:
+            self.password = args.password
+            self.use_password = True
+        elif args.passfile:
+            self.password = read_passfile(args.passfile)
+
+        return client
+
         
 
     # Initialized self.config (rhost's paramiko.config.SSHConfigDict)
@@ -123,6 +154,12 @@ class Client(paramiko.SSHClient):
             self.use_password = False
 
 
+    # Begin interactive session
+    def spawn_shell(self):
+        interactive_shell(self.invoke_shell())
+
+
+
 # https://github.com/paramiko/paramiko/blob/master/demos/interactive.py
 # Launch interactive SSH session. Considers OS capabilities
 def interactive_shell(chan):
@@ -132,73 +169,6 @@ def interactive_shell(chan):
         windows_shell(chan)
 
 
-# Launch interactive SSH session on Unix client
-def posix_shell(chan):
-
-    oldtty = termios.tcgetattr(sys.stdin)
-    try:
-        tty.setraw(sys.stdin.fileno())
-        tty.setcbreak(sys.stdin.fileno())
-        chan.settimeout(0.0)
-
-        while True:
-            r, w, e = select.select([chan, sys.stdin], [], [])
-            if chan in r:
-                try:
-                    x = u(chan.recv(1024))
-                    if len(x) == 0:
-                        sys.stdout.write("\r\r*** EOF\r\n")
-                        break
-                    sys.stdout.write(x)
-                    sys.stdout.flush()
-                except socket.timeout:
-                    pass
-
-            if sys.stdin in r:
-                x = sys.stdin.read(1)
-                if len(x) == 0:
-                    break
-                chan.send(x)
-
-    finally:
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, oldtty)
-
-
-def windows_shell(chan):
-    pass
-
-def read_passfile(file):
-    with open(file, "r") as f:
-        passw = f.read().strip()
-    return passw
-
-
-def main():
-
-    args = parse_options()
-
-    # Set Authentication
-    user , host, port = parse_host_string(args)
-
-    if args.password:
-        password = args.password
-    elif args.passfile:
-        password = read_passfile(args.passfile)
-    else:
-        password = None
-
-    # Connect
-    print(f"Connecting to {host}:{port} as {user}...")
-    client = connect_client(host, port, user, password=password, keyfile=args.identity_file)
-
-    # Create shell
-    interactive_shell(client.invoke_shell())
-
-    # End client connection
-    client.close()
-
-
-# Parse command line arguments, return argparse namespace
 def parse_options(*, scp=False):
 
     # Add arguments
@@ -263,6 +233,55 @@ def parse_host_string(args):
         user = "root"
     
     return (user, host, port)
+
+
+# Launch interactive SSH session on Unix client
+def posix_shell(chan):
+
+    oldtty = termios.tcgetattr(sys.stdin)
+    try:
+        tty.setraw(sys.stdin.fileno())
+        tty.setcbreak(sys.stdin.fileno())
+        chan.settimeout(0.0)
+
+        while True:
+            r, w, e = select.select([chan, sys.stdin], [], [])
+            if chan in r:
+                try:
+                    x = u(chan.recv(1024))
+                    if len(x) == 0:
+                        sys.stdout.write("\r\r*** EOF\r\n")
+                        break
+                    sys.stdout.write(x)
+                    sys.stdout.flush()
+                except socket.timeout:
+                    pass
+
+            if sys.stdin in r:
+                x = sys.stdin.read(1)
+                if len(x) == 0:
+                    break
+                chan.send(x)
+
+    finally:
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, oldtty)
+
+
+def windows_shell(chan):
+    pass
+
+def read_passfile(file):
+    with open(file, "r") as f:
+        passw = f.read().strip()
+    return passw
+
+
+def main():
+
+    client = Client.from_options()
+    client.client_connect()
+    client.spawn_shell()
+
 
 
 if __name__ == '__main__':
