@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import getpass
+import os.path
 import paramiko
 import select
 import socket
@@ -18,33 +19,108 @@ except ImportError:
 
 
 
-# Authenticate and connect to SSH server
-def connect_client(host, port, user, password=None, keyfile=None):
 
-    print("Initializing client...")
-    ssh_client = paramiko.SSHClient()
+class Client(paramiko.SSHClient):
 
-    # Load host keys
-    try:
-        ssh_client.load_system_host_keys()
-    except Exception as e:
-        print("Error: failed to load host keys! %s" % e)
+    def __init__(self, rhost):
+        super().__init__()
+        self.load_system_host_keys()
+        self.host = host
+        # Add missing host keys by default, for now
+        self.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-    # Auto-add server to trusted policy
-    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-    if password is None and keyfile is None:
-        password = getpass.getpass()
-
-    ssh_client.connect(
-        host,
-        port=port,
-        username=user,
-        password=password,
-        key_filename=keyfile
-    )
     
-    return ssh_client
+    # Would be connect() but I don't want to mess up paramiko's method atm
+    def client_connect(self):
+
+        print(f"Connecting: {self.user}@{self.host}:{self.port}")
+
+        # Try to authenticate 3 times if using password
+        attempts = 3 
+        for i in range(attempts):
+            try:
+                self.connect(
+                hostname=self.host,
+                port=self.port,
+                username=self.user,
+                password=self.password,
+                key_filename=self.keys,
+                look_for_keys=self.key_lookup
+                )
+                break
+            except paramiko.ssh_exception.AuthenticationException as err:
+                if not self.use_password:
+                    raise err
+                sys.stderr.write("%s\n" % err)
+                if i == 2:
+                    exit()
+                self.password = getpass.getpass()
+        
+        print("Connected!")
+        
+
+    # Initialized self.config (rhost's paramiko.config.SSHConfigDict)
+    def get_config(self, config_file=None):
+        config = paramiko.config.SSHConfig()
+        
+        # Normalize paths 
+        if not config_file:
+            cfg = "~/.ssh/config"
+        else:
+            cfg = config_file
+        cfg = os.path.expandvars(cfg)
+        cfg = os.path.expanduser(cfg)
+        
+        # Parse, and be chill if no config was specified
+        try:
+            with open(cfg) as f:
+                config.parse(f)
+        except FileNotFoundError as err:
+            if config_file:
+                raise err
+            else:
+                try:
+                    with open("/etc/ssh/ssh_config") as f:
+                        config.parse(f)
+                except FileNotFoundError as err:
+                    sys.stderr.write("No config files found!\n%s" % err)
+        
+        self.config = config.lookup(self.host)
+    
+
+    def parse_config(self, config_file=None):
+
+        self.password = None
+
+        # Read config file if haven't already
+        if not hasattr(self, 'config'):
+            self.get_config(config_file)
+        
+        # User
+        if self.config.get("user", False):
+            self.user = self.config['user']
+        else:
+            self.user = getpass.getuser()
+        # Port
+        if self.config.get("port", False):
+            self.port = self.config.as_int("port")
+        else:
+            self.port = 22
+        # Identity files
+        if self.config.get("identityfile", False):
+            self.keys = self.config['identityfile']
+            self.key_lookup = False
+        else:
+            self.keys = None
+            if self.config.get("pubkeyauthentication", False):
+                self.key_lookup = self.config.as_bool('pubkeyauthentication')
+            else:
+                self.key_lookup = True
+        # Passwords
+        if self.config.get("passwordauthentication", False):
+            self.use_password = self.config.as_bool("passwordauthentication")
+        else:
+            self.use_password = False
 
 
 # https://github.com/paramiko/paramiko/blob/master/demos/interactive.py
