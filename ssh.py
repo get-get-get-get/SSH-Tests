@@ -63,8 +63,8 @@ class Client(paramiko.SSHClient):
     @classmethod
     def from_options(cls, scp=False):
 
+        # Read basic options from command-line
         args = parse_options(scp=scp)
-
         if scp:
             user, host, port, resource = scp.parse_scp_host(args)
         else:
@@ -72,8 +72,7 @@ class Client(paramiko.SSHClient):
 
         # Instantiate Client
         client = cls(host)
-
-        # Read configs to set default
+        # Read configs to set defaults
         client.parse_config()
 
         # Override config with any command-line options
@@ -87,6 +86,9 @@ class Client(paramiko.SSHClient):
             client.use_password = True
         elif args.passfile:
             client.password = read_passfile(args.passfile)
+        
+        if args.identity_file:
+            client.keys = [args.identity_file]
 
         return client
 
@@ -185,6 +187,11 @@ def parse_options(*, scp=False):
             "destination",
             help="File destination; either remote host or local file"
         )
+    parser.add_argument(
+        "-F",
+        "--config",
+        help="Use config file"
+    )
     parser.add_argument("-p", "--port",
         type=int,
         help="Port to connect to")
