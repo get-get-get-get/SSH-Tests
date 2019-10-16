@@ -64,7 +64,7 @@ class Client(paramiko.SSHClient):
     def from_options(cls, sftp=False):
 
         # Read basic options from command-line
-        args = parse_options(scp=scp)
+        args = parse_options(sftp=sftp)
         if sftp:
             user, host, port, resource = scp.parse_scp_host(args)
         else:
@@ -184,7 +184,7 @@ def interactive_shell(chan):
         windows_shell(chan)
 
 
-def parse_options(*, scp=False):
+def parse_options(*, sftp=False):
 
     # Add arguments
     parser = argparse.ArgumentParser()
@@ -193,7 +193,7 @@ def parse_options(*, scp=False):
     parser.add_argument(
         "host",
         help="Remote machine, formatted user@domain")
-    if scp:
+    if sftp:
         parser.add_argument(
             "destination",
             help="File destination; either remote host or local file"
