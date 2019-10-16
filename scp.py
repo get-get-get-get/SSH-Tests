@@ -44,13 +44,6 @@ def parse_scp_host(args):
         host, port = host.split(":")
         port = int(port)
 
-    if user is None and args.user is None:
-        user = "root"
-    elif user is None:
-        user = args.user
-    if port is None:
-        port = args.port
-
     return (user, host, port, resource)
 
 

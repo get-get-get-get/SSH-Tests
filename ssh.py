@@ -22,7 +22,7 @@ import scp
 
 class Client(paramiko.SSHClient):
 
-    def __init__(self, rhost):
+    def __init__(self, host):
         super().__init__()
         self.load_system_host_keys()
         self.host = host
@@ -77,14 +77,16 @@ class Client(paramiko.SSHClient):
         client.parse_config()
 
         # Override config with any command-line options
-        self.user = user
-        self.port = port
+        if user:
+            client.user = user
+        if port:
+            client.port = port
         
         if args.password:
-            self.password = args.password
-            self.use_password = True
+            client.password = args.password
+            client.use_password = True
         elif args.passfile:
-            self.password = read_passfile(args.passfile)
+            client.password = read_passfile(args.passfile)
 
         return client
 
@@ -184,7 +186,6 @@ def parse_options(*, scp=False):
             help="File destination; either remote host or local file"
         )
     parser.add_argument("-p", "--port",
-        default=22,
         type=int,
         help="Port to connect to")
     parser.add_argument(
@@ -198,13 +199,11 @@ def parse_options(*, scp=False):
     parser.add_argument(
         "-i",
         "--identity-file",
-        default=None,
         help="Path to key file"
     )
     parser.add_argument(
         "-u",
         "--user",
-        default=None,
         help="Username for authentication")
     pw_group = parser.add_mutually_exclusive_group()
     pw_group.add_argument(
@@ -222,15 +221,18 @@ def parse_options(*, scp=False):
 def parse_host_string(args):
 
     host = args.host
-    user = args.user
-    port = args.port
+    port = None
+    user = None
+
+    if args.user:
+        user = args.user
+    if args.port:
+        port = args.port
 
     if "@" in host:
         user, host = host.split("@")
     if (":" in host) and not args.IPv6:
         port = host.split(":")
-    if user is None:
-        user = "root"
     
     return (user, host, port)
 
