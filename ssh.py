@@ -61,11 +61,11 @@ class Client(paramiko.SSHClient):
 
     # Create Clients from command line arguments
     @classmethod
-    def from_options(cls, scp=False):
+    def from_options(cls, sftp=False):
 
         # Read basic options from command-line
         args = parse_options(scp=scp)
-        if scp:
+        if sftp:
             user, host, port, resource = scp.parse_scp_host(args)
         else:
             user, host, port = parse_host_string(args)
@@ -89,6 +89,17 @@ class Client(paramiko.SSHClient):
         
         if args.identity_file:
             client.keys = [args.identity_file]
+        
+        # scp things
+        if sftp:
+            remote_resource, local_resource = scp.find_remote(args.host, args.destination)
+            if remote_resource == args.host:
+                client.scp_method = "get"
+            else:
+                client.scp_method = "put"
+            client.remote_resource = remote_resource
+            client.local_resource = local_resource
+            client.resource = resource
 
         return client
 
